@@ -367,6 +367,12 @@ mod tests {
 
         // Non-conversion at the end of the string
         assert_eq!(x_to_unicode("pac"), "pac".to_string());
+
+        // Ignored X’s
+        assert_eq!(x_to_unicode("MDCCCLXXXVII"), "MDCCCLXXXVII".to_string());
+
+        // Multiple X’s
+        assert_eq!(x_to_unicode("CXXU?"), "ĈXU?".to_string());
     }
 
     #[test]
