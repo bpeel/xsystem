@@ -1,7 +1,12 @@
 [package]
 name = "xsystem"
 version = "0.1.0"
+description = "Conversion between the Esperanto x-system and Unicode circumflexes."
+repository = "https://github.com/bpeel/xsystem"
+keywords = ["esperanto"]
 edition = "2021"
+license = "MIT"
+documentation = "https://docs.rs/xsystem"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
