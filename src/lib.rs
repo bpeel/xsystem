@@ -73,6 +73,19 @@ impl<I: Iterator<Item = char>> Iterator for XToUnicode<I> {
             },
         }
     }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let (min, max) = self.iter.size_hint();
+
+        (
+            min / 2 + min % 2,
+            match max {
+                None => None,
+                max @ Some(_) => max,
+            },
+        )
+    }
 }
 
 pub struct UnicodeToX<I: Iterator<Item = char>> {
@@ -113,6 +126,19 @@ impl<I: Iterator<Item = char>> Iterator for UnicodeToX<I> {
                 }
             }
         }
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let (min, max) = self.iter.size_hint();
+
+        (
+            min,
+            match max {
+                None => None,
+                Some(max) => Some(max.saturating_mul(2)),
+            },
+        )
     }
 }
 
@@ -233,6 +259,34 @@ mod tests {
         assert_eq!(
             unicode_to_x("EĤOŜANĜOĈIUĴAŬDE"),
             "EHXOSXANGXOCXIUJXAUXDE".to_string()
+        );
+    }
+
+    #[test]
+    fn test_size_hint() {
+        assert_eq!(
+            unicode_chars(['a', 'b'].iter().map(|&c| c)).size_hint(),
+            (1, Some(2))
+        );
+        assert_eq!(
+            unicode_chars(['a', 'b', 'c'].iter().map(|&c| c)).size_hint(),
+            (2, Some(3))
+        );
+        assert_eq!(
+            unicode_chars(std::iter::repeat('c')).size_hint(),
+            (usize::MAX / 2 + 1, None)
+        );
+        assert_eq!(
+            x_chars(['a', 'b'].iter().map(|&c| c)).size_hint(),
+            (2, Some(4))
+        );
+        assert_eq!(
+            x_chars(['a', 'b', 'c'].iter().map(|&c| c)).size_hint(),
+            (3, Some(6))
+        );
+        assert_eq!(
+            x_chars(std::iter::repeat('c')).size_hint(),
+            (usize::MAX, None)
         );
     }
 }
