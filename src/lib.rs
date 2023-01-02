@@ -116,12 +116,20 @@ impl<I: Iterator<Item = char>> Iterator for UnicodeToX<I> {
     }
 }
 
+pub fn x_chars<I: Iterator<Item = char>>(iter: I) -> UnicodeToX<I> {
+    UnicodeToX::new(iter)
+}
+
+pub fn unicode_chars<I: Iterator<Item = char>>(iter: I) -> XToUnicode<I> {
+    XToUnicode::new(iter)
+}
+
 pub fn x_to_unicode(s: &str) -> String {
-    XToUnicode::new(s.chars()).collect::<String>()
+    unicode_chars(s.chars()).collect::<String>()
 }
 
 pub fn unicode_to_x(s: &str) -> String {
-    UnicodeToX::new(s.chars()).collect::<String>()
+    x_chars(s.chars()).collect::<String>()
 }
 
 #[cfg(test)]
