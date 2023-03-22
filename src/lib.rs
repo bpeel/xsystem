@@ -151,13 +151,7 @@ impl<I: Iterator<Item = char>> Iterator for XToUnicode<I> {
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (min, max) = self.iter.size_hint();
 
-        (
-            min / 2 + min % 2,
-            match max {
-                None => None,
-                max @ Some(_) => max,
-            },
-        )
+        (min / 2 + min % 2, max)
     }
 }
 
@@ -214,13 +208,7 @@ impl<I: Iterator<Item = char>> Iterator for UnicodeToX<I> {
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (min, max) = self.iter.size_hint();
 
-        (
-            min,
-            match max {
-                None => None,
-                Some(max) => Some(max.saturating_mul(2)),
-            },
-        )
+        (min, max.map(|max| max.saturating_mul(2)))
     }
 }
 
