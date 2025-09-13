@@ -121,30 +121,26 @@ impl<I: Iterator<Item = char>> Iterator for XToUnicode<I> {
     type Item = char;
 
     fn next(&mut self) -> Option<char> {
-        let next_value = match self.queued_result.take() {
-            Some(value) => value,
-            None => self.iter.next(),
-        };
-
-        match next_value {
-            None => None,
-            Some(c) => match HATABLE_CHARS.binary_search_by(|x| x.0.cmp(&c)) {
-                Err(_) => Some(c),
-                Ok(pos) => match self.iter.next() {
-                    None => {
-                        self.queued_result = Some(None);
-                        Some(c)
-                    }
-                    Some(next_c) if next_c == 'x' || next_c == 'X' => {
-                        Some(HATABLE_CHARS[pos].1)
-                    }
-                    queue_result @ Some(_) => {
-                        self.queued_result = Some(queue_result);
-                        Some(c)
-                    }
-                },
-            },
-        }
+        self.queued_result.take()
+            .unwrap_or_else(|| self.iter.next())
+            .map(|c| {
+                match HATABLE_CHARS.binary_search_by(|x| x.0.cmp(&c)) {
+                    Err(_) => c,
+                    Ok(pos) => match self.iter.next() {
+                        None => {
+                            self.queued_result = Some(None);
+                            c
+                        }
+                        Some(next_c) if next_c == 'x' || next_c == 'X' => {
+                            HATABLE_CHARS[pos].1
+                        }
+                        queue_result @ Some(_) => {
+                            self.queued_result = Some(queue_result);
+                            c
+                        }
+                    },
+                }
+            })
     }
 
     #[inline]
@@ -186,22 +182,19 @@ impl<I: Iterator<Item = char>> Iterator for UnicodeToX<I> {
             return res;
         }
 
-        match self.iter.next() {
-            None => None,
-            Some(c) => {
-                match UNHATABLE_CHARS.binary_search_by(|x| x.0.cmp(&c)) {
-                    Err(_) => Some(c),
-                    Ok(pos) => {
-                        let replacement = UNHATABLE_CHARS[pos].1;
+        self.iter.next().map(|c| {
+            match UNHATABLE_CHARS.binary_search_by(|x| x.0.cmp(&c)) {
+                Err(_) => c,
+                Ok(pos) => {
+                    let replacement = UNHATABLE_CHARS[pos].1;
 
-                        self.queued_char =
-                            Some(if replacement >= 'a' { 'x' } else { 'X' });
+                    self.queued_char =
+                        Some(if replacement >= 'a' { 'x' } else { 'X' });
 
-                        Some(replacement)
-                    }
+                    replacement
                 }
             }
-        }
+        })
     }
 
     #[inline]
